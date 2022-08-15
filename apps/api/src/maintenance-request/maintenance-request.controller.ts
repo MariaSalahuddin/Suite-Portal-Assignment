@@ -1,14 +1,13 @@
-import { BadRequestException, Body, Controller, Post, Get, Param } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post, Get, Param, Put, Headers } from '@nestjs/common';
 import { MaintenanceRequest } from '@suiteportal/api-interfaces';
 import { MaintenanceRequestService } from './maintenance-request.service';
-
+import { AuthMiddleware } from '../app/auth.service';
 @Controller('maintenance-requests')
 export class MaintenanceRequestController {
 
   constructor(
-    private readonly maintenanceRequestService: MaintenanceRequestService,
+    private readonly maintenanceRequestService: MaintenanceRequestService, private authMiddleware: AuthMiddleware
   ) {
-    //
   }
 
   @Post('/')
@@ -23,6 +22,21 @@ export class MaintenanceRequestController {
     }
     return await this.maintenanceRequestService.createMaintenanceRequest(maintenanceRequest);
   }
+  @Put('/:id')
+  public async updateMaintenanceRequest(
+
+    @Param('id') id: string,
+    @Body() maintenanceRequest: MaintenanceRequest,
+    @Headers() header,
+  ) {
+    const checkAuth = await this.authMiddleware.auth(header.authorization)
+    if (checkAuth) {
+      if (!id || !maintenanceRequest) {
+        throw new BadRequestException('No id provided');
+      }
+      return await this.maintenanceRequestService.updateMaintenanceRequest(id, maintenanceRequest);
+    }
+  }
 
   @Get('/:id')
   public async getMaintenanceRequest(
@@ -32,6 +46,12 @@ export class MaintenanceRequestController {
       throw new BadRequestException('No id provided');
     }
     return await this.maintenanceRequestService.getMaintenanceRequest(id);
+  }
+  @Get('/')
+  public async getMaintenanceList(@Headers() header) {
+    const checkAuth = await this.authMiddleware.auth(header.authorization)
+    if (checkAuth)
+      return await this.maintenanceRequestService.getMaintenanceList();
   }
 
 }

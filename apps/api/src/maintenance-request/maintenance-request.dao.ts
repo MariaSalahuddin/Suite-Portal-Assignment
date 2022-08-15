@@ -36,12 +36,24 @@ export class MaintenanceRequestDao {
         ...id,
         ...maintenanceRequest,
         submittedAt: new Date(),
+        status: "open"
       })
       .write()
     return id;
   }
-
+  async updateRequest(id: String, maintenanceRequest) {
+    const index = await this.collection.findIndex(obj => obj.id == id);
+    this.collection.value()[index].status = maintenanceRequest.status
+    this.collection.write();
+    return id;
+  }
   async getMaintenanceRequest(id: string): Promise<MaintenanceRequestDB> {
     return await this.collection.find({ id }).value();
+  }
+  async getList(): Promise<MaintenanceRequestDB> {
+    return await this.collection.value();
+  }
+  async updateMaintenanceRequest(id, bodyParam): Promise<MaintenanceRequestDB> {
+    return await this.collection.value();
   }
 }
